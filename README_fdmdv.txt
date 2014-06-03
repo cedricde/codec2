@@ -18,7 +18,7 @@ Quickstart
 ----------
 
 $ cd codec2
-$ ./configure && make
+$ cmake && make
 $ cd src
 
 1. Generate some test bits and modulate them:
