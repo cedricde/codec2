@@ -3,7 +3,7 @@
 % Used in conjunction with src/fdmdv_demod to test the
 % fdmdv_get_rx_spectrum() function.
 %
-% codec2-dev/src$ ./fdmdv_demod fdmdv_mod.raw tmp.c2 dump.txt
+% codec2/src$ ./fdmdv_demod fdmdv_mod.raw tmp.c2 dump.txt
 % octave:3> tget_spec("../src/dump.txt")
 %
 % Copyright David Rowe 2012

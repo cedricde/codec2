@@ -50,17 +50,17 @@ Getting Started
 
 . Place a copy of hts1a.raw in the stlink directory and start st-util:
 
-   ~/stlink$ cp ~/codec2-dev/raw/hts1a.raw stm_in.raw
-   ~/stlink$ sudo ./st-util -f /home/david/codec2-dev/stm32/stm32f4_codec2.elf
+   ~/stlink$ cp ~/codec2/raw/hts1a.raw stm_in.raw
+   ~/stlink$ sudo ./st-util -f /home/david/codec2/stm32/stm32f4_codec2.elf
 
 . In _another_ console start gdb:
 
-   $ ~/codec2-dev/stm32$ ~/gcc-arm-none-eabi-4_7-2013q1/bin/arm-none-eabi-gdb stm32f4_codec2.elf
+   $ ~/codec2/stm32$ ~/gcc-arm-none-eabi-4_7-2013q1/bin/arm-none-eabi-gdb stm32f4_codec2.elf
 
    (gdb) tar ext :4242
 
    (gdb) load
-   `/home/david/codec2-dev/stm32/fft_test.elf' has changed; re-reading symbols.
+   `/home/david/codec2/stm32/fft_test.elf' has changed; re-reading symbols.
     Loading section .isr_vector, size 0x188 lma 0x8000000
     Loading section .text, size 0x1a4b4 lma 0x8000188
     Loading section .data, size 0x28f0 lma 0x801a63c

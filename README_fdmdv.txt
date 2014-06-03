@@ -17,7 +17,7 @@ operation of the Octave and C versions are identical.
 Quickstart
 ----------
 
-$ cd codec2-dev
+$ cd codec2
 $ ./configure && make
 $ cd src
 

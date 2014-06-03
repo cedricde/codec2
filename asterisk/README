@@ -17,18 +17,18 @@ Asterisk must be patched so that the core understand Codec 2 frames.
 
 1/ First install Codec 2:
 
-    david@cool:~$ svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2-dev codec2-dev
-    david@cool:~/codec2-dev$ cd codec2-dev
-    david@cool:~/codec2-dev$ ./configure && make && sudo make install
-    david@bear:~/codec2-dev$ sudo ldconfig -v
-    david@cool:~/codec2-dev$ cd ~
+    david@cool:~$ svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2 codec2
+    david@cool:~/codec2$ cd codec2
+    david@cool:~/codec2$ ./configure && make && sudo make install
+    david@bear:~/codec2$ sudo ldconfig -v
+    david@cool:~/codec2$ cd ~
 
 2/ Then build Asterisk with Codec 2 support:
 
     david@cool:~$ tar xvzf asterisk-1.8.9.0.tar.gz
-    david@cool:~/asterisk-1.8.9.0$ patch -p4 < ~/codec2-dev/asterisk/asterisk-codec2.patch
-    david@cool:~/asterisk-1.8.9.0$ cp ~/codec2-dev/asterisk/codec_codec2.c .
-    david@cool:~/asterisk-1.8.9.0$ cp ~/codec2-dev/asterisk/ex_codec2.h ./codecs
+    david@cool:~/asterisk-1.8.9.0$ patch -p4 < ~/codec2/asterisk/asterisk-codec2.patch
+    david@cool:~/asterisk-1.8.9.0$ cp ~/codec2/asterisk/codec_codec2.c .
+    david@cool:~/asterisk-1.8.9.0$ cp ~/codec2/asterisk/ex_codec2.h ./codecs
     david@cool:~/asterisk-1.8.9.0$ ./configure && make ASTLDFLAGS=-lcodec2
     david@cool:~/asterisk-1.8.9.0$ sudo make install
     david@cool:~/asterisk-1.8.9.0$ sudo make samples

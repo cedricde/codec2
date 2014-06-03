@@ -8,7 +8,7 @@
 % for conference and user group presentations on a projector.  An
 % alternative to static overhead slides.
 %
-% Derived from codec2-dev/octave/plamp.m
+% Derived from codec2/octave/plamp.m
 %
 % usage:
 %   octave:1> plamp("../src/hts2a",40)
@@ -22,7 +22,7 @@
 %
 % The text files used as input are generated using c2sim:
 %
-%   /codec2-dev/src$ c2sim ../raw/hts2a.raw --dump hts2a
+%   /codec2/src$ c2sim ../raw/hts2a.raw --dump hts2a
 %
 % The Codec 2 README explains how to build c2sim with dump files
 % enabled.
