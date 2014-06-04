@@ -14,7 +14,7 @@ Quickstart
 1/ Listen to Codec 2:
    $ cd codec2
    $ mkdir build_linux
-   $ cmake && make
+   $ cmake ../ && make
    $ ./src/c2demo ../raw/hts1a.raw hts1a_c2.raw
    $ ../script/menu.sh ../raw/hts1a.raw hts1a_c2.raw
 
@@ -53,8 +53,8 @@ Debugging
 
 1/ For dump file support:
 
-  $ cd codec2
-  $ CFLAGS=-DDUMP ./configure
+  $ cd codec2/build_dir
+  $ CFLAGS=-DDUMP make ../
   $ make clean && make
 
 2/ To use gdb:
