@@ -106,7 +106,7 @@ static COMP cadd(COMP a, COMP b)
 
 static float cabsolute(COMP a)
 {
-    return sqrt(pow(a.real, 2.0) + pow(a.imag, 2.0));
+    return sqrt(a.real*a.real + a.imag*a.imag);
 }
 
 /*---------------------------------------------------------------------------*\
@@ -211,8 +211,6 @@ struct FDMDV * CODEC2_WIN32SUPPORT fdmdv_create(int Nc)
     }
 
     f->foff = 0.0;
-    f->foff_rect.real = 1.0;
-    f->foff_rect.imag = 0.0;
     f->foff_phase_rect.real = 1.0;
     f->foff_phase_rect.imag = 0.0;
 
@@ -447,9 +445,10 @@ void tx_filter(COMP tx_baseband[NC+1][M], int Nc, COMP tx_symbols[], COMP tx_fil
 
 void fdm_upconvert(COMP tx_fdm[], int Nc, COMP tx_baseband[NC+1][M], COMP phase_tx[], COMP freq[])
 {
-    int  i,c;
-    COMP two = {2.0, 0.0};
-    COMP pilot;
+    int   i,c;
+    COMP  two = {2.0, 0.0};
+    COMP  pilot;
+    float mag;
 
     for(i=0; i<M; i++) {
 	tx_fdm[i].real = 0.0;
@@ -494,8 +493,9 @@ void fdm_upconvert(COMP tx_fdm[], int Nc, COMP tx_baseband[NC+1][M], COMP phase_
     /* normalise digital oscilators as the magnitude can drfift over time */
 
     for (c=0; c<Nc+1; c++) {
-	phase_tx[c].real /= cabsolute(phase_tx[c]);	
-	phase_tx[c].imag /= cabsolute(phase_tx[c]);	
+        mag = cabsolute(phase_tx[c]);
+	phase_tx[c].real /= mag;	
+	phase_tx[c].imag /= mag;	
     }
 }
 
@@ -644,13 +644,15 @@ void lpf_peak_pick(float *foff, float *max, COMP pilot_baseband[],
 
     for(i=0; i<NPILOTLPF-nin; i++)
 	pilot_lpf[i] = pilot_lpf[nin+i];
-    for(i=NPILOTLPF-nin, j=0; i<NPILOTLPF; i++,j++) {
+    for(i=NPILOTLPF-nin, j=NPILOTCOEFF; i<NPILOTLPF; i++,j++) {
 	pilot_lpf[i].real = 0.0; pilot_lpf[i].imag = 0.0;
-	for(k=0; k<NPILOTCOEFF; k++)
-	    pilot_lpf[i] = cadd(pilot_lpf[i], fcmult(pilot_coeff[k], pilot_baseband[j+k]));
+	for(k=0; k<NPILOTCOEFF; k++) {
+	    pilot_lpf[i] = cadd(pilot_lpf[i], fcmult(pilot_coeff[k], pilot_baseband[j-k]));
+	    //pilot_lpf[i] = pilot_baseband[j-NPILOTCOEFF+1];
+        }
     }
 
-    /* decimate to improve DFT resolution, window and DFT */
+   /* decimate to improve DFT resolution, window and DFT */
 
     mpilot = FS/(2*200);  /* calc decimation rate given new sample rate is twice LPF freq */
     for(i=0; i<MPILOTFFT; i++) {
@@ -722,9 +724,9 @@ float rx_est_freq_offset(struct FDMDV *f, COMP rx_fdm[], int nin)
     /*
       Down convert latest M samples of pilot by multiplying by ideal
       BPSK pilot signal we have generated locally.  The peak of the
-      resulting signal is sensitive to the time shift between the
-      received and local version of the pilot, so we do it twice at
-      different time shifts and choose the maximum.
+      DFT of the resulting signal is sensitive to the time shift
+      between the received and local version of the pilot, so we do it
+      twice at different time shifts and choose the maximum.
     */
 
     for(i=0; i<NPILOTBASEBAND-nin; i++) {
@@ -733,7 +735,7 @@ float rx_est_freq_offset(struct FDMDV *f, COMP rx_fdm[], int nin)
     }
 
     for(i=0,j=NPILOTBASEBAND-nin; i<nin; i++,j++) {
-       	f->pilot_baseband1[j] = cmult(rx_fdm[i], cconj(pilot[i]));
+        f->pilot_baseband1[j] = cmult(rx_fdm[i], cconj(pilot[i]));
 	f->pilot_baseband2[j] = cmult(rx_fdm[i], cconj(prev_pilot[i]));
     }
 
@@ -760,21 +762,24 @@ float rx_est_freq_offset(struct FDMDV *f, COMP rx_fdm[], int nin)
 \*---------------------------------------------------------------------------*/
 
 void CODEC2_WIN32SUPPORT fdmdv_freq_shift(COMP rx_fdm_fcorr[], COMP rx_fdm[], float foff, 
-                                          COMP *foff_rect, COMP *foff_phase_rect, int nin)
+                                          COMP *foff_phase_rect, int nin)
 {
+    COMP  foff_rect;
+    float mag;
     int   i;
 
-    foff_rect->real = cos(2.0*PI*foff/FS);
-    foff_rect->imag = sin(2.0*PI*foff/FS);
+    foff_rect.real = cos(2.0*PI*foff/FS);
+    foff_rect.imag = sin(2.0*PI*foff/FS);
     for(i=0; i<nin; i++) {
-	*foff_phase_rect = cmult(*foff_phase_rect, *foff_rect);
+	*foff_phase_rect = cmult(*foff_phase_rect, foff_rect);
 	rx_fdm_fcorr[i] = cmult(rx_fdm[i], *foff_phase_rect);
     }
 
     /* normalise digital oscilator as the magnitude can drfift over time */
 
-    foff_phase_rect->real /= cabsolute(*foff_phase_rect);	 
-    foff_phase_rect->imag /= cabsolute(*foff_phase_rect);	 
+    mag = cabsolute(*foff_phase_rect);
+    foff_phase_rect->real /= mag;	 
+    foff_phase_rect->imag /= mag;	 
 }
 
 /*---------------------------------------------------------------------------*\
@@ -789,7 +794,8 @@ void CODEC2_WIN32SUPPORT fdmdv_freq_shift(COMP rx_fdm_fcorr[], COMP rx_fdm[], fl
 
 void fdm_downconvert(COMP rx_baseband[NC+1][M+M/P], int Nc, COMP rx_fdm[], COMP phase_rx[], COMP freq[], int nin)
 {
-    int  i,c;
+    int   i,c;
+    float mag;
 
     /* maximum number of input samples to demod */
 
@@ -822,8 +828,9 @@ void fdm_downconvert(COMP rx_baseband[NC+1][M+M/P], int Nc, COMP rx_fdm[], COMP 
     /* normalise digital oscilators as the magnitude can drift over time */
 
     for (c=0; c<Nc+1; c++) {
-	phase_rx[c].real /= cabsolute(phase_rx[c]);	  
-	phase_rx[c].imag /= cabsolute(phase_rx[c]);	  
+        mag = cabsolute(phase_rx[c]);
+	phase_rx[c].real /= mag;	  
+	phase_rx[c].imag /= mag;	  
     }
 }
 
@@ -1012,8 +1019,10 @@ float qpsk_to_bits(int rx_bits[], int *sync_bit, int Nc, COMP phase_difference[]
        leads to sensible scatter plots */
 
     for(c=0; c<Nc; c++) {
-        norm = 1.0/(cabsolute(prev_rx_symbols[c])+1E-6);
-	phase_difference[c] = cmult(cmult(rx_symbols[c], fcmult(norm,cconj(prev_rx_symbols[c]))), pi_on_4);
+        norm = 1.0/(1E-6 + cabsolute(prev_rx_symbols[c]));
+	prev_rx_symbols[c] = fcmult(norm, prev_rx_symbols[c]);
+        phase_difference[c] = cmult(prev_rx_symbols[c], cconj(prev_rx_symbols[c]));
+	phase_difference[c] = cmult(phase_difference[c],pi_on_4);        
     }
 				    
     /* map (Nc,1) DQPSK symbols back into an (1,Nc*Nb) array of bits */
@@ -1295,7 +1304,7 @@ void CODEC2_WIN32SUPPORT fdmdv_demod(struct FDMDV *fdmdv, int rx_bits[],
     
     if (fdmdv->sync == 0)
 	fdmdv->foff = foff_coarse;
-    fdmdv_freq_shift(rx_fdm_fcorr, rx_fdm, -fdmdv->foff, &fdmdv->foff_rect, &fdmdv->foff_phase_rect, *nin);
+    fdmdv_freq_shift(rx_fdm_fcorr, rx_fdm, -fdmdv->foff, &fdmdv->foff_phase_rect, *nin);
 	
     /* baseband processing */
 
@@ -1561,7 +1570,7 @@ void CODEC2_WIN32SUPPORT fdmdv_dump_osc_mags(struct FDMDV *f)
     fprintf(stderr,"\nfreq[]:\n");
     for(i=0; i<=f->Nc; i++)
 	fprintf(stderr,"  %1.3f", cabsolute(f->freq[i]));
-    fprintf(stderr,"\nfoff_rect %1.3f  foff_phase_rect: %1.3f", cabsolute(f->foff_rect), cabsolute(f->foff_phase_rect));
+    fprintf(stderr,"\nfoff_phase_rect: %1.3f", cabsolute(f->foff_phase_rect));
     fprintf(stderr,"\nphase_rx[]:\n");
     for(i=0; i<=f->Nc; i++)
 	fprintf(stderr,"  %1.3f", cabsolute(f->phase_rx[i]));
