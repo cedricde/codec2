@@ -30,13 +30,13 @@ project(codec2)
 #
 set(CODEC2_VERSION_MAJOR 0)
 set(CODEC2_VERSION_MINOR 3)
-# Set to patch level is needed, otherwise leave FALSE.
+# Set to patch level if needed, otherwise leave FALSE.
 set(CODEC2_VERSION_PATCH FALSE)
 set(CODEC2_VERSION "${CODEC2_VERSION_MAJOR}.${CODEC2_VERSION_MINOR}")
 # Patch level version bumps should not change API/ABI.
 set(SOVERSION "${CODEC2_VERSION_MAJOR}.${CODEC2_VERSION_MINOR}")
 if(CODEC2_VERSION_PATCH)
-    set(PROJECT_VERSION "${CODEC2_VERSION}.${CODEC2_VERSION_PATCH}")
+    set(CODEC2_VERSION "${CODEC2_VERSION}.${CODEC2_VERSION_PATCH}")
 endif(CODEC2_VERSION_PATCH)
 message(STATUS "codec2 version: ${CODEC2_VERSION}")
 
@@ -147,12 +147,10 @@ if(WIN32)
     set(CPACK_PACKAGE_VERSION_MINOR ${CODEC2_VERSION_MINOR})
     if(CODEC2_VERSION_PATCH)
         set(CPACK_PACKAGE_VERSION_PATCH ${CODEC2_VERSION_PATCH})
+    else(CODEC2_VERSION_PATCH)
+        set(CPACK_PACKAGE_VERSION_PATCH 0)
     endif(CODEC2_VERSION_PATCH)
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "Codec2")
-    # There is a bug in NSI that does not handle full unix paths properly. Make
-    # sure there is at least one set of four (4) backlasshes.
-    #set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
-    #set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
     set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY}")
     set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\codec2.org")
     set(CPACK_NSIS_MODIFY_PATH ON)
