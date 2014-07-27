@@ -88,6 +88,7 @@ option(UNITTEST "Build unittest binaries." OFF)
 option(INSTALL_EXAMPLES "Install example code." OFF)
 if(INSTALL_EXAMPLES)
     install(DIRECTORY octave raw script voicing wav
+        USE_SOURCE_PERMISSIONS
         DESTINATION share/codec2)
 endif()
 
