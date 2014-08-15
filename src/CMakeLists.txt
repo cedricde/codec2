@@ -82,12 +82,10 @@ set(CODEBOOKSGE ${D}/gecb.txt)
 
 # when crosscompiling import the executable targets from a file
 if(CMAKE_CROSSCOMPILING)
-    SET(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Point it to the export file from a native build")
+    SET(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Point to the export file from a native build")
     INCLUDE(${IMPORT_EXECUTABLES})
-endif(CMAKE_CROSSCOMPILING)
-
+else(CMAKE_CROSSCOMPILING)
 # Build code generator binaries. These do not get installed.
-if(NOT CMAKE_CROSSCOMPILING)
     # generate_codebook
     add_executable(generate_codebook generate_codebook.c)
     target_link_libraries(generate_codebook ${CMAKE_REQUIRED_LIBRARIES})
@@ -97,7 +95,8 @@ if(NOT CMAKE_CROSSCOMPILING)
     # Make native builds available for cross-compiling.
     export(TARGETS generate_codebook genlspdtcb
         FILE ${CMAKE_BINARY_DIR}/ImportExecutables.cmake)
-endif(NOT CMAKE_CROSSCOMPILING)
+endif(CMAKE_CROSSCOMPILING)
+
 
 # codebook.c
 add_custom_command(

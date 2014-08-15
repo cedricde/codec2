@@ -44,7 +44,8 @@ message(STATUS "codec2 version: ${CODEC2_VERSION}")
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif(NOT CMAKE_BUILD_TYPE)
-message(STATUS "Build type is: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Build type is: " ${CMAKE_BUILD_TYPE})
+message(STATUS "Compiler Flags: " ${CMAKE_CXX_FLAGS})
 
 #
 # Setup Windows/MinGW specifics here.
@@ -52,12 +53,16 @@ message(STATUS "Build type is: ${CMAKE_BUILD_TYPE}")
 if(MINGW)
     message(STATUS "System is MinGW.")
     foreach(RUNTIME
-        libgcc_s_sjlj-1.dll
-        libstdc++-6.dll)
+		gcc_s_sjlj-1
+		gcc_s_dw2-1
+		stdc++-6
+	)
         message(STATUS "Checking for ${RUNTIME}")
         find_library(${RUNTIME}_LIB ${RUNTIME})
         message(STATUS "runtime found: ${${RUNTIME}_LIB}")
-        list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${${RUNTIME}_LIB})
+		if(${${RUNTIME}_LIB}_FOUND)
+			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${${RUNTIME}_LIB})
+		endif()
     endforeach()
 endif(MINGW)
 
