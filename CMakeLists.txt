@@ -5,9 +5,16 @@
 # Please report questions, comments, problems, or patches to the freetel
 # mailing list: https://lists.sourceforge.net/lists/listinfo/freetel-codec2
 #
+project(codec2)
 
 cmake_minimum_required(VERSION 2.8)
 
+include(GNUInstallDirs)
+mark_as_advanced(CLEAR
+    CMAKE_INSTALL_BINDIR
+    CMAKE_INSTALL_INCLUDEDIR
+    CMAKE_INSTALL_LIBDIR
+)
 #
 # Prevent in-source builds
 # If an in-source build is attempted, you will still need to clean up a few
@@ -20,8 +27,6 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    "allowed, please remove ./CMakeCache.txt and ./CMakeFiles/, create a "
    "separate build directory and run cmake from there.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-
-project(codec2)
 
 
 #
@@ -44,6 +49,11 @@ message(STATUS "codec2 version: ${CODEC2_VERSION}")
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif(NOT CMAKE_BUILD_TYPE)
+
+# Set default C++ flags.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -Wall")
+
 message(STATUS "Build type is: " ${CMAKE_BUILD_TYPE})
 message(STATUS "Compiler Flags: " ${CMAKE_CXX_FLAGS})
 
@@ -80,9 +90,6 @@ endif(MINGW)
 #   message(WARNING "Subversion not found. Can not determine svn revision.")
 #endif(SUBVERSION_FOUND)
 
-# Set default C++ flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -Wall")
 
 #
 # Default options

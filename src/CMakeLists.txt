@@ -198,7 +198,7 @@ set(CODEC2_PUBLIC_HEADERS
 )
 
 install(FILES ${CODEC2_PUBLIC_HEADERS}
-    DESTINATION include/codec2
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/codec2
 )
 
 add_executable(c2demo c2demo.c)
@@ -237,8 +237,17 @@ target_link_libraries(fec_enc ${CMAKE_REQUIRED_LIBRARIES} codec2)
 add_executable(fec_dec fec_dec.c golay23.c)
 target_link_libraries(fec_dec ${CMAKE_REQUIRED_LIBRARIES} codec2)
 
+install(TARGETS codec2 EXPORT codec2-config
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(EXPORT codec2-config
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/codec2
+)
+
 install(TARGETS
-    codec2
     c2demo
     c2demo
     c2enc
@@ -251,7 +260,5 @@ install(TARGETS
     insert_errors
     fec_enc
     fec_dec
-    LIBRARY DESTINATION lib${LIB_SUFFIX}
-    ARCHIVE DESTINATION lib${LIB_SUFFIX}
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
