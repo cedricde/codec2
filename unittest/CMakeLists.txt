@@ -81,4 +81,3 @@ target_link_libraries(raw2h codec2)
 add_definitions(-D__UNITTEST__)
 add_executable(c2validate c2validate.c)
 target_link_libraries(c2validate codec2)
-#c2validate_LDADD = $(lib_LTLIBRARIES) ../src/libcodec2.la

@@ -82,8 +82,8 @@ set(CODEBOOKSGE ${D}/gecb.txt)
 
 # when crosscompiling import the executable targets from a file
 if(CMAKE_CROSSCOMPILING)
-    SET(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Point to the export file from a native build")
-    INCLUDE(${IMPORT_EXECUTABLES})
+    set(IMPORT_EXECUTABLES "IMPORTFILE-NOTFOUND" CACHE FILEPATH "Point to the export file from a native build")
+    include(${IMPORT_EXECUTABLES})
 else(CMAKE_CROSSCOMPILING)
 # Build code generator binaries. These do not get installed.
     # generate_codebook
@@ -184,21 +184,23 @@ set(CODEC2_SRCS
     golay23.c
 )
 
-add_library(codec2 ${CODEC2_SRCS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(codec2 ${CMAKE_REQUIRED_LIBRARIES})
-set_target_properties(codec2 PROPERTIES SOVERSION ${SOVERSION})
-
 set(CODEC2_PUBLIC_HEADERS
+    golay23.h
     codec2.h
     codec2_fdmdv.h
     codec2_fifo.h
     comp.h
-    golay23.h
 )
 
-install(FILES ${CODEC2_PUBLIC_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/codec2
+#
+# Setup the codec2 library
+#
+add_library(codec2 ${CODEC2_SRCS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(codec2 ${CMAKE_REQUIRED_LIBRARIES})
+set_target_properties(codec2 PROPERTIES
+    SOVERSION ${SOVERSION}
+    PUBLIC_HEADER "${CODEC2_PUBLIC_HEADERS}"
 )
 
 add_executable(c2demo c2demo.c)
@@ -241,11 +243,12 @@ install(TARGETS codec2 EXPORT codec2-config
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/codec2
 )
 
-install(EXPORT codec2-config
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/codec2
-)
+#install(EXPORT codec2-config
+#    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/codec2
+#)
 
 install(TARGETS
     c2demo

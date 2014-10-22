@@ -15,6 +15,7 @@ mark_as_advanced(CLEAR
     CMAKE_INSTALL_INCLUDEDIR
     CMAKE_INSTALL_LIBDIR
 )
+
 #
 # Prevent in-source builds
 # If an in-source build is attempted, you will still need to clean up a few
@@ -42,17 +43,24 @@ set(CODEC2_VERSION "${CODEC2_VERSION_MAJOR}.${CODEC2_VERSION_MINOR}")
 set(SOVERSION "${CODEC2_VERSION_MAJOR}.${CODEC2_VERSION_MINOR}")
 if(CODEC2_VERSION_PATCH)
     set(CODEC2_VERSION "${CODEC2_VERSION}.${CODEC2_VERSION_PATCH}")
-endif(CODEC2_VERSION_PATCH)
+endif()
 message(STATUS "codec2 version: ${CODEC2_VERSION}")
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
-endif(NOT CMAKE_BUILD_TYPE)
+endif()
 
 # Set default C++ flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+
+# -fPIC is implied on MinGW...
+if(NOT WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+endif()
+
 
 message(STATUS "Build type is: " ${CMAKE_BUILD_TYPE})
 message(STATUS "Compiler Flags: " ${CMAKE_CXX_FLAGS})
@@ -62,18 +70,6 @@ message(STATUS "Compiler Flags: " ${CMAKE_CXX_FLAGS})
 #
 if(MINGW)
     message(STATUS "System is MinGW.")
-    foreach(RUNTIME
-		gcc_s_sjlj-1
-		gcc_s_dw2-1
-		stdc++-6
-	)
-        message(STATUS "Checking for ${RUNTIME}")
-        find_library(${RUNTIME}_LIB ${RUNTIME})
-        message(STATUS "runtime found: ${${RUNTIME}_LIB}")
-		if(${${RUNTIME}_LIB}_FOUND)
-			list(APPEND CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${${RUNTIME}_LIB})
-		endif()
-    endforeach()
 endif(MINGW)
 
 
@@ -93,7 +89,7 @@ endif(MINGW)
 
 #
 # Default options
-#a
+#
 option(BUILD_SHARED_LIBS
     "Build shared library. Set to OFF for static library." ON)
 option(UNITTEST "Build unittest binaries." OFF)
@@ -101,7 +97,7 @@ option(INSTALL_EXAMPLES "Install example code." OFF)
 if(INSTALL_EXAMPLES)
     install(DIRECTORY octave raw script voicing wav
         USE_SOURCE_PERMISSIONS
-        DESTINATION share/codec2)
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/codec2)
 endif()
 
 
@@ -131,6 +127,14 @@ configure_file ("${PROJECT_SOURCE_DIR}/cmake/config.h.in"
                 "${PROJECT_BINARY_DIR}/config.h" )
 include_directories(${PROJECT_BINARY_DIR})
 
+# CMake Package setup
+include(CMakePackageConfigHelpers)
+configure_package_config_file(cmake/codec2-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/codec2-config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/codec2
+    PATH_VARS CMAKE_INSTALL_INCLUDEDIR
+)
+
 #
 # codec2 library
 #
@@ -151,7 +155,10 @@ endif(UNITTEST)
 # distribution packaging tools.
 #
 if(WIN32)
-    include(InstallRequiredSystemLibraries)
+    configure_file(cmake/GetDependencies.cmake.in cmake/GetDependencies.cmake
+        @ONLY
+    )
+    install(SCRIPT ${CMAKE_BINARY_DIR}/cmake/GetDependencies.cmake)
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Next-Generation Digital Voice for Two-Way Radio")
     set(CPACK_PACKAGE_VENDOR "CMake")
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
@@ -160,12 +167,13 @@ if(WIN32)
     set(CPACK_PACKAGE_VERSION_MINOR ${CODEC2_VERSION_MINOR})
     if(CODEC2_VERSION_PATCH)
         set(CPACK_PACKAGE_VERSION_PATCH ${CODEC2_VERSION_PATCH})
-    else(CODEC2_VERSION_PATCH)
+    else()
         set(CPACK_PACKAGE_VERSION_PATCH 0)
-    endif(CODEC2_VERSION_PATCH)
+    endif()
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "Codec2")
+    set(CPACK_CREATE_DESKTOP_LINKS "")
     set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY}")
-    set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\codec2.org")
+    set(CPACK_NSIS_URL_INFO_ABOUT "http://codec2.org")
     set(CPACK_NSIS_MODIFY_PATH ON)
     include(CPack)
 endif(WIN32)
