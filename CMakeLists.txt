@@ -155,6 +155,11 @@ endif(UNITTEST)
 # distribution packaging tools.
 #
 if(WIN32)
+    # Detect if we're doing a 32-bit or 64-bit windows build.
+    if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+        set(CMAKE_CL_64 TRUE)
+    endif()
+
     configure_file(cmake/GetDependencies.cmake.in cmake/GetDependencies.cmake
         @ONLY
     )
