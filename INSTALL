@@ -1,0 +1,43 @@
+Installation Instructions for codec2
+------------------------------------
+
+The CMake configuration for codec2 should be considered experimental at
+this time but has been thouroughly tested on Fedora Linux and cross-compiling 
+from linux to windows with mingw and has many advanages over the autotools
+config. 
+
+1/ Builds against system libraries by default.
+2/ Has experimental NSIS packaing support for Windows (WIN32) targets. *nix
+   systems should rely on 'make install' as the packages (RPM & DEB) created by
+   CPack are questionable.
+
+
+Building and installing
+-----------------------
+
+Out-of-source builds are preferred. To build codec2, make a directory anywhere
+underneath (or outside of) the source directory.
+
+Linux command line example:
+
+    $ cd /path/to/codec2
+    $ mkdir build_linux
+    $ cd build_linux
+    $ cmake ../ (defaults to /usr/local, use CMAKE_INSTALL_PREFIX to override)
+    (if no errors)
+    $ make
+    (as root)
+    $ make install
+
+Codec2 installs to /usr/local by defailt on *nix systems but can be overriden
+by passing options to cmake during configuration.
+
+Some options that may be of interest:
+    1/ CMAKE_INSTALL_PREFIX: Defaults to /usr/local
+    2/ CMAKE_BUILD_TYPE: Defaults to Release
+    3/ CMAKE_C_FLAGS: Additional build flags.
+
+These can be modified on the command line by using the "-D" option when running
+cmake:
+    
+    $ cmake -DCMAKE_INSTALL_PREFIX=/usr

@@ -12,6 +12,7 @@ Quickstart
 ----------
 
 1/ Listen to Codec 2:
+
    $ cd codec2
    $ mkdir build_linux
    $ cmake ../ && make
