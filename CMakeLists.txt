@@ -48,7 +48,7 @@ message(STATUS "codec2 version: ${CODEC2_VERSION}")
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 # Set default C++ flags.
@@ -100,7 +100,7 @@ endif(MINGW)
 option(BUILD_SHARED_LIBS
     "Build shared library. Set to OFF for static library." ON)
 # Unittest should be on for dev builds and off for releases.
-option(UNITTEST "Build unittest binaries." ON)
+option(UNITTEST "Build unittest binaries." OFF)
 option(INSTALL_EXAMPLES "Install example code." OFF)
 if(INSTALL_EXAMPLES)
     install(DIRECTORY octave raw script wav
