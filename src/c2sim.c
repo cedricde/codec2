@@ -128,6 +128,7 @@ int main(int argc, char *argv[])
     void *nlp_states;
     float hpf_states[2];
     int   scalar_quant_Wo_e = 0;
+    int   scalar_quant_Wo_e_low = 0;
     int   vector_quant_Wo_e = 0;
     int   dump_pitch_e = 0;
     FILE *fjvm = NULL;
@@ -141,7 +142,9 @@ int main(int argc, char *argv[])
     int   bpfb_en = 0;
     float bpf_buf[BPF_N+N];
     float lspmelvq_mse = 0.0;
-    
+    int   amread;
+    FILE *fam;
+
     char* opt_string = "ho:";
     struct option long_options[] = {
         { "lpc", required_argument, &lpc_model, 1 },
@@ -169,11 +172,13 @@ int main(int argc, char *argv[])
         { "prede", no_argument, &prede, 1 },
         { "dump_pitch_e", required_argument, &dump_pitch_e, 1 },
         { "sq_pitch_e", no_argument, &scalar_quant_Wo_e, 1 },
+        { "sq_pitch_e_low", no_argument, &scalar_quant_Wo_e_low, 1 },
         { "vq_pitch_e", no_argument, &vector_quant_Wo_e, 1 },
         { "rate", required_argument, NULL, 0 },
         { "gain", required_argument, NULL, 0 },
         { "bpf", no_argument, &bpf_en, 1 },
         { "bpfb", no_argument, &bpfb_en, 1 },
+        { "amread", required_argument, &amread, 1 },
         #ifdef DUMP
         { "dump", required_argument, &dump, 1 },
         #endif
@@ -267,6 +272,12 @@ int main(int argc, char *argv[])
             } else if(strcmp(long_options[option_index].name, "lspmelread") == 0) {
 	        if ((flspmel = fopen(optarg,"rb")) == NULL) {
 	            fprintf(stderr, "Error opening float lspmel file: %s: %s.\n",
+		        optarg, strerror(errno));
+                    exit(1);
+                }
+            } else if(strcmp(long_options[option_index].name, "amread") == 0) {
+	        if ((fam = fopen(optarg,"rb")) == NULL) {
+	            fprintf(stderr, "Error opening float Am file: %s: %s.\n",
 		        optarg, strerror(errno));
                     exit(1);
                 }
@@ -643,14 +654,23 @@ int main(int argc, char *argv[])
 
 	    if (lspmel) {
 		float f, f_;
-		float mel[LPC_ORD];
-		int   mel_indexes[LPC_ORD];
+		float mel[order];
+		int   mel_indexes[order];
 
 		for(i=0; i<order; i++) {
 		    f = (4000.0/PI)*lsps[i];
 		    mel[i] = floor(2595.0*log10(1.0 + f/700.0) + 0.5);
 		}
                 
+                #define MEL_ROUND 25
+		for(i=1; i<order; i++) {
+		    if (mel[i] <= mel[i-1]+MEL_ROUND) {
+			mel[i]+=MEL_ROUND/2;
+			mel[i-1]-=MEL_ROUND/2;
+                        i = 1;
+                    }
+		}
+
                 #ifdef DUMP
                 dump_mel(mel, order);
                 #endif
@@ -674,13 +694,14 @@ int main(int argc, char *argv[])
                 }
                 
                 if (lspmelvq) {
+                    int indexes[3];
                     //lspmelvq_mse += lspmelvq_quantise(mel, mel, order);
-                    lspmelvq_mse += lspmelvq_mbest_quantise(mel, mel, order, 5);
+                    lspmelvq_mse += lspmelvq_mbest_encode(indexes, mel, mel, order, 5);
                 }
         
                 /* ensure no unstable filters after quantisation */
-        
-                #define MEL_ROUND 10
+                       
+                #define MEL_ROUND 25
 		for(i=1; i<order; i++) {
 		    if (mel[i] <= mel[i-1]+MEL_ROUND) {
 			mel[i]+=MEL_ROUND/2;
@@ -688,7 +709,7 @@ int main(int argc, char *argv[])
                         i = 1;
                     }
 		}
-        
+                
 		for(i=0; i<order; i++) {
 		    f_ = 700.0*( pow(10.0, mel[i]/2595.0) - 1.0);
 		    lsps_[i] = f_*(PI/4000.0);
@@ -705,6 +726,13 @@ int main(int argc, char *argv[])
 		model.L  = PI/model.Wo; /* if we quantise Wo re-compute L */
 	    }
                 
+	    if (scalar_quant_Wo_e_low) {
+                int ind;
+		e = decode_energy(ind = encode_energy(e, 3), 3);
+                model.Wo = decode_log_Wo(encode_log_Wo(model.Wo, 5), 5);
+		model.L  = PI/model.Wo; /* if we quantise Wo re-compute L */
+	    }
+                
 	    if (vector_quant_Wo_e) {
 
 		/* JVM's experimental joint Wo & LPC energy quantiser */
@@ -713,6 +741,11 @@ int main(int argc, char *argv[])
 	    }
             
 	}
+
+        if (amread) {
+            int ret = fread(model.A, sizeof(float), MAX_AMP, fam);
+            assert(ret == MAX_AMP);
+        }
 
 	/*------------------------------------------------------------*\
 
@@ -869,6 +902,7 @@ void print_help(const struct option* long_options, int num_opts, char* argv[])
 		}
 		fprintf(stderr, "\t--%s%s\n", long_options[i].name, option_parameters);
 	}
+
 	exit(1);
 }
 
