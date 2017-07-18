@@ -35,7 +35,7 @@ endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 # file at some point.
 #
 set(CODEC2_VERSION_MAJOR 0)
-set(CODEC2_VERSION_MINOR 6)
+set(CODEC2_VERSION_MINOR 7)
 # Set to patch level if needed, otherwise leave FALSE.
 set(CODEC2_VERSION_PATCH FALSE)
 set(CODEC2_VERSION "${CODEC2_VERSION_MAJOR}.${CODEC2_VERSION_MINOR}")
@@ -48,7 +48,7 @@ message(STATUS "codec2 version: ${CODEC2_VERSION}")
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 # Set default C++ flags.
